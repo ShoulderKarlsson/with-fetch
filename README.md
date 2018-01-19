@@ -10,6 +10,8 @@ HOC for fetching data
 This HOC is designed to be applied in `recompose` compose chain. You can read about recompose [here]().
 The HOC will always pass a prop do the wrapped component called `data` wich contains the reponse from the request. If an error occured during the request, a prop `error` will be passed to the wrapped component.
 
+If you choose to use the default spinner. The spinner container will be sized 100% (width & height) of the parent container, if you do not approve of this behavior, it is possible to pass in a custom Spinner component with the Spinner property (Look in examples how this is done).
+
 
 The HOC expects a single object that takes a set of different properties. Required properties are in **bold**.
 
@@ -51,6 +53,7 @@ const MyEnhancedComponent = enhance(({data}) => {
 ```js
 import {compose} from 'recompose'
 const enhance = compose(
+  connect(state => ({user: state.user}))
   withFetch({
     urlGenerator: props => `http://someurl.com/user/${props.user.id}`
     requester: () => { ... }
@@ -72,11 +75,38 @@ import {compose} from 'recompose'
 const enhance = compose(
   withFetch({
     urlGenerator: props => `http://someurl.com/user/${props.user.id}`
-    requester: () => { ... }
+    requester: () => { ... },
+    wantIsLoading: true
   })
 )
 
-const MyEnhancedComponent = enhance(({data}) => {
+const MyEnhancedComponent = enhance(({data, isLoading}) => {
+  return (
+    <div>
+      {isLoading
+          ? <MySpinner />
+          : <MyContainer>{/* ... */}</MyContainer>
+      }
+    </div>
+  )
+})
+```
+
+### Custom Spinner component
+```js
+import {compose} from 'recompose'
+
+const MyCustomSpinnerComponent = () => { ... }
+const enhance = compose(
+  withFetch({
+    urlGenerator: props => `http://someurl.com/user/${props.user.id}`
+    requester: () => { ... },
+    Spinner: MyCustomSpinnerComponent,
+    wantIsLoading: true
+  })
+)
+
+const MyEnhancedComponent = enhance(({data, isLoading}) => {
   return (
     <div>
       {isLoading
@@ -92,7 +122,7 @@ const MyEnhancedComponent = enhance(({data}) => {
 ```js
 import {compose} from 'recompose'
 const enhance = compose(
-  withfetch({
+  withFetch({
     urlgenerator: props => `http://someurl.com/user/${props.user.id}`
     requester: () => { ... }
   })

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {compose, lifecycle, withState} from 'recompose'
 import './spinner.css'
 
-const DefaultSpinner = () => <div className='spinner'></div>
+const DefaultSpinner = () => <div className='spinner' />
 
 export const withFetch = ({
   url = '',

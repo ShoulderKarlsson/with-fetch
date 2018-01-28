@@ -59,10 +59,10 @@ var withFetch = exports.withFetch = function withFetch(_ref) {
 
         if (isLoading && wantLoadingProp) {
           return React.createElement(WrappedComponent, _extends({
-            isLoading: isLoading
+            data: data,
+            isLoading: isLoading,
+            error: error
           }, props));
-        } else if (!isLoading && error) {
-          return React.createElement(WrappedComponent, _extends({ error: error }, props));
         } else {
           return React.createElement(
             'div',
@@ -72,7 +72,7 @@ var withFetch = exports.withFetch = function withFetch(_ref) {
                 height: '100%'
               }
             },
-            isLoading ? React.createElement(Spinner, null) : React.createElement(WrappedComponent, _extends({ data: data, isLoading: isLoading }, props))
+            isLoading ? React.createElement(Spinner, null) : React.createElement(WrappedComponent, _extends({ data: data, error: error }, props))
           );
         }
       });

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {compose, lifecycle, withState} from 'recompose'
 import './spinner.css'
 
-const DefaultSpinner = () => <div className='spinner' />
+const DefaultSpinner = () => <div className="spinner" />
 
 export const withFetch = ({
   wantLoadingProp = false,
@@ -40,13 +40,13 @@ export const withFetch = ({
       return (
         <WrappedComponent
           {...{
+            data,
             isLoading,
+            error,
             ...props,
           }}
         />
       )
-    } else if (!isLoading && error) {
-      return <WrappedComponent {...{error, ...props}} />
     } else {
       return (
         <div
@@ -58,7 +58,7 @@ export const withFetch = ({
           {isLoading ? (
             <Spinner />
           ) : (
-            <WrappedComponent {...{data, isLoading, ...props}} />
+            <WrappedComponent {...{data, error, ...props}} />
           )}
         </div>
       )

@@ -14,6 +14,7 @@ The HOC will always pass a prop do the wrapped component called `data` wich cont
 
 If you choose to use the default spinner. The spinner container will be sized 100% (width & height) of the parent container, if you do not approve of this behavior, it is possible to pass in a custom Spinner component with the Spinner property (Look in examples how this is done).
 
+
 The HOC expects a single object that takes a set of different properties. Required properties are in **bold**.
 
 ### NOTE
@@ -124,6 +125,23 @@ const enhance = compose(
   withFetch({
     urlgenerator: props => `http://someurl.com/user/${props.user.id}`
     requester: () => { ... }
+  })
+)
+
+const MyEnhancedComponent = enhance(({error}) => {
+  return (
+    <div>{/* ... */}</div>
+  )
+})
+```
+
+### Payload
+```js
+import {compose} from 'recompose'
+const enhance = compose(
+  withFetch({
+    urlgenerator: props => `http://someurl.com/user/${props.user.id}`
+    requester: ({url, payload}) => { ... }
   })
 )
 

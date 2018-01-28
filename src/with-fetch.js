@@ -5,7 +5,6 @@ import './spinner.css'
 const DefaultSpinner = () => <div className='spinner' />
 
 export const withFetch = ({
-  urlGenerator,
   wantLoadingProp = false,
   Spinner = DefaultSpinner,
   request,

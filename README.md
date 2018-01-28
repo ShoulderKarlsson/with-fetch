@@ -1,12 +1,12 @@
 # with-fetch
 
-HOC for fetching data
+HOC for fetching data!
 
 ## Get started
 
-  yarn add withFetch
+  `yarn add withFetch`
 
-  npm install withFetch
+  `npm install withFetch`
 
 # Usage
 The HOC will always pass along a `data` prop and a `error` prop the the enhanced component. The error prop will be null if no error was detected during the request and the data prop will also be null.

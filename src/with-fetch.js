@@ -5,17 +5,15 @@ import './spinner.css'
 const DefaultSpinner = () => <div className='spinner' />
 
 export const withFetch = ({
-  url = '',
   urlGenerator,
   wantLoadingProp = false,
   Spinner = DefaultSpinner,
-  requester,
-  payload = {},
+  request,
 }) => WrappedComponent => props => {
-  if (!url && typeof urlGenerator !== 'function') {
-    throw new Error('Must provide url or urlGenerator')
-  } else if (typeof requester !== 'function') {
-    throw new Error('Must provide a requester function')
+  if (typeof request !== 'function') {
+    throw new Error('Property request must be a function')
+  } else if (request === undefined) {
+    throw new Error('Property request cannot be undefined')
   }
 
   const enhance = compose(
@@ -25,11 +23,7 @@ export const withFetch = ({
     lifecycle({
       componentDidMount() {
         const {setError, setIsLoading, setData} = this.props
-
-        const _url =
-          typeof urlGenerator === 'function' ? urlGenerator(props) : url
-
-        requester({url: _url, payload})
+        request(props)
           .then(response => {
             setData(response)
             setIsLoading(false)
@@ -39,10 +33,10 @@ export const withFetch = ({
             setIsLoading(false)
           })
       },
-    }),
+    })
   )
 
-  const WithFetch = enhance(({isLoading, error, data, ...props}) => {
+  const WithFetch = enhance(({isLoading, error, data}) => {
     if (isLoading && wantLoadingProp) {
       return (
         <WrappedComponent

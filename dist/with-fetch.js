@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.withFetch = undefined;
+exports.displayWhileLoading = exports.withFetch = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -21,63 +21,76 @@ var DefaultSpinner = function DefaultSpinner() {
   return React.createElement('div', { className: 'spinner' });
 };
 
-var withFetch = exports.withFetch = function withFetch(_ref) {
-  var _ref$wantLoadingProp = _ref.wantLoadingProp,
-      wantLoadingProp = _ref$wantLoadingProp === undefined ? false : _ref$wantLoadingProp,
-      _ref$Spinner = _ref.Spinner,
-      Spinner = _ref$Spinner === undefined ? DefaultSpinner : _ref$Spinner,
-      request = _ref.request;
+var parseResponse = function parseResponse(response) {
+  if (!response.ok) return Promise.reject(response);
+  var contentType = response.headers.get('content-type');
+  if (contentType && contentType.indexOf('application/json') !== -1) {
+    return response.json();
+  } else {
+    return response.text();
+  }
+};
+
+var withFetch = exports.withFetch = function withFetch(requestFn) {
   return function (WrappedComponent) {
     return function (props) {
-      if (typeof request !== 'function') {
-        throw new Error('Property request must be a function');
-      } else if (request === undefined) {
-        throw new Error('Property request cannot be undefined');
+      console.log('NEW WITH FETCH');
+      if (typeof requestFn !== 'function') {
+        throw new Error('Argument must be function');
       }
 
-      var enhance = (0, _recompose.compose)((0, _recompose.withState)('isLoading', 'setIsLoading', true), (0, _recompose.withState)('data', 'setData', null), (0, _recompose.withState)('error', 'setError', null), (0, _recompose.lifecycle)({
+      var enhance = (0, _recompose.compose)((0, _recompose.withState)('loading', 'setLoading', true), (0, _recompose.withState)('data', 'setData', null), (0, _recompose.withState)('error', 'setError', null), (0, _recompose.lifecycle)({
         componentDidMount: function componentDidMount() {
           var _props = this.props,
-              setError = _props.setError,
-              setIsLoading = _props.setIsLoading,
-              setData = _props.setData;
+              setLoading = _props.setLoading,
+              setData = _props.setData,
+              setError = _props.setError;
 
-          request(props).then(function (response) {
-            setData(response);
-            setIsLoading(false);
-          }).catch(function (e) {
-            setError(e);
-            setIsLoading(false);
+          requestFn(props).then(function (response) {
+            return parseResponse(response);
+          }).then(function (data) {
+            setData(data);
+            setLoading(false);
+          }).catch(function (error) {
+            setError(error);
+            setLoading(false);
+          }).catch(function (error) {
+            return setError(error);
           });
         }
       }));
 
-      var WithFetch = enhance(function (_ref2) {
-        var isLoading = _ref2.isLoading,
-            error = _ref2.error,
-            data = _ref2.data;
-
-        if (isLoading && wantLoadingProp) {
-          return React.createElement(WrappedComponent, _extends({
-            data: data,
-            isLoading: isLoading,
-            error: error
-          }, props));
-        } else {
-          return React.createElement(
-            'div',
-            {
-              style: {
-                width: '100%',
-                height: '100%'
-              }
-            },
-            isLoading ? React.createElement(Spinner, null) : React.createElement(WrappedComponent, _extends({ data: data, error: error }, props))
-          );
-        }
+      var EnhancedComponent = enhance(function (_ref) {
+        var loading = _ref.loading,
+            data = _ref.data,
+            error = _ref.error;
+        return React.createElement(WrappedComponent, _extends({
+          loading: loading,
+          data: data,
+          error: error
+        }, props));
       });
 
-      return React.createElement(WithFetch, null);
+      return React.createElement(EnhancedComponent, null);
+    };
+  };
+};
+
+var displayWhileLoading = exports.displayWhileLoading = function displayWhileLoading() {
+  var SpinnerComopnent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DefaultSpinner;
+  return function (WrappedComponent) {
+    return function (props) {
+      console.log('Using default spinner component');
+      return props.loading ? React.createElement(
+        'div',
+        {
+          style: {
+            height: '100%',
+            width: '100%'
+          }
+        },
+        React.createElement(SpinnerComopnent, null)
+      ) : React.createElement(WrappedComponent, props);
     };
   };
 };

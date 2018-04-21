@@ -16,7 +16,7 @@ The component exports two HOC's
 
 ### withFetch
 
-This HOC is where the fetching takes action, it will fetch, parse and return the data for you.
+This HOC is where the fetching is done. The HOC will fetch, parse and then pass the data to the final component.
 
 #### Basic Usage
 
@@ -45,9 +45,11 @@ This HOC displays a spinner, it comes with a somewhat ugly default spinner but a
 #### Basic Usage (Combined with withFetch)
 
 ```js
-import {withFetch, displayWhileLoading} form 'with-fetch'
+import {withFetch, displayWhileLoading} from 'with-fetch'
 import {compose} from 'recompose'
 import fetch from 'isomorphic-fetch'
+
+const MyCustomSpinner = () => <div>Spinning into places</div>
 
 const enhance = compose(
   withFetch(props => fetch(`http://myResource.com/${props.someResourceId}`)),
@@ -61,13 +63,8 @@ const enhance = compose(
 )
 
 const MyComponent = enhance(({data, loading, error}) => {
-
   // If you dont want this inside your render, move this functionality into a HOC aswell!
   if (error) return <MyErrorComponent error={error} />
-  return (
-    <div>
-      {data}
-    </div>
-  )
+  return <div>{data}</div>
 })
 ```

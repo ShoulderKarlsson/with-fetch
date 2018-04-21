@@ -5,13 +5,18 @@ import './spinner.css'
 const DefaultSpinner = () => <div className='spinner' />
 
 const parseResponse = response => {
+  // If it does not have `ok` prop, simply return entire response
+  if ('ok' in response === false) return Promise.resolve(response)
+
+  // If the response was failed, rejecting and
+  // setting error to error prop
   if (!response.ok) return Promise.reject(response)
+
   const contentType = response.headers.get('content-type')
-  if (contentType && contentType.indexOf('application/json') !== -1) {
-    return response.json()
-  } else {
-    return response.text()
-  }
+
+  return contentType && contentType.indexOf('application/json') !== -1
+    ? response.json()
+    : response.text()
 }
 
 export const withFetch = requestFn => WrappedComponent => props => {
@@ -36,7 +41,6 @@ export const withFetch = requestFn => WrappedComponent => props => {
             setError(error)
             setLoading(false)
           })
-          .catch(error => setError(error))
       },
     })
   )

@@ -22,19 +22,21 @@ var DefaultSpinner = function DefaultSpinner() {
 };
 
 var parseResponse = function parseResponse(response) {
+  // If it does not have `ok` prop, simply return entire response
+  if ('ok' in response === false) return Promise.resolve(response);
+
+  // If the response was failed, rejecting and
+  // setting error to error prop
   if (!response.ok) return Promise.reject(response);
+
   var contentType = response.headers.get('content-type');
-  if (contentType && contentType.indexOf('application/json') !== -1) {
-    return response.json();
-  } else {
-    return response.text();
-  }
+
+  return contentType && contentType.indexOf('application/json') !== -1 ? response.json() : response.text();
 };
 
 var withFetch = exports.withFetch = function withFetch(requestFn) {
   return function (WrappedComponent) {
     return function (props) {
-      console.log('NEW WITH FETCH');
       if (typeof requestFn !== 'function') {
         throw new Error('Argument must be function');
       }
@@ -54,8 +56,6 @@ var withFetch = exports.withFetch = function withFetch(requestFn) {
           }).catch(function (error) {
             setError(error);
             setLoading(false);
-          }).catch(function (error) {
-            return setError(error);
           });
         }
       }));
@@ -80,7 +80,6 @@ var displayWhileLoading = exports.displayWhileLoading = function displayWhileLoa
   var SpinnerComopnent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DefaultSpinner;
   return function (WrappedComponent) {
     return function (props) {
-      console.log('Using default spinner component');
       return props.loading ? React.createElement(
         'div',
         {

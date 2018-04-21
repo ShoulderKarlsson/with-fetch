@@ -1,6 +1,7 @@
 # with-fetch
 
 HOC for simple data fetching designed for [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+If you pass it a request function that is not following the fetch api, the raw response will be returned to the final component in the `data` prop.
 
 ## Installation
 

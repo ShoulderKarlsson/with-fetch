@@ -1,139 +1,73 @@
 # with-fetch
 
-HOC for fetching data!
+HOC for simple data fetching designed for [fetch api](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
-## Get started
+## Installation
 
-  `yarn add with-fetch`
+`$ yarn add with-fetch`  
+ `$ npm install with-fetch`
 
-  `npm install with-fetch`
+## How it works
 
-# Usage
-The HOC will always pass along a `data` prop and a `error` prop the the enhanced component. The error prop will be null if no error was detected during the request and the data prop will also be null.
+The component exports two HOC's
 
-If you choose to use the default spinner. The spinner container will be sized 100% (width & height) of the parent container, if you do not approve of this behavior, it is possible to pass in a custom Spinner component with the Spinner property (Look in examples how this is done).
+* withFetch
+* displayWhileLoading
 
-The HOC expects a single object that takes a set of different properties. Required properties are in **bold**.
+### withFetch
 
-| Name          | Description                                                                                                                                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **request**       | The function that will make the request. In this function you can access props and for example generate an URL. The HOC expects Promise as return value from the 'request' property.                                                   |
-| wantIsLoading | The component comes with functionality for rendering a spinner while the request is waiting. If this is set to true, the wrapped component will be rendered with this property and you can handle the wait for a response on your own. |
-| Spinner       | The component comes with a default Spinner component. This allows you to pass in your own components that will be presneted during the loading time.                                                                                   |
+This HOC is where the fetching takes action, it will fetch, parse and return the data for you.
 
-# Examples
-
-### Basic usage
+#### Basic Usage
 
 ```js
+import {withFetch} from 'with-fetch'
 import {compose} from 'recompose'
-const enhance = compose(
-  connect(state => ({resource: state.resource})),
-  withFetch({
-    request: props => fetch(`http://localhost:8080/resource/${props.resource.id}`)
-  })
-)
+import fetch from 'isomorphic-fetch'
 
-const MyEnhancedComponent = enhance(({data, error}) => {
-  return (
-    <div>
-     {
-      error
-        ? <p>Oh noes! - {error}</p>
-        : <p>{data}</p>
-     }
-    </div>
-  )
-})
-```
-
-### Compose everything!
-
-```js
-import {compose} from 'recompose'
-const enhance = compose(
-  connect(state => ({resource: state.resource}))
-  withFetch({
-
-    // Make sure to activate this in order to handle the loading on your own!
-    wantIsLoadingProp: true,
-    request: props => fetch(`http://localhost:8080/resource/${props.resource.id}`)
-  }),
-  WrappedComponent => props => {
-    return props.isLoading ? <MySpinnerComponent /> : <WrappedComponent {...props} />
-  },
-  WrappedComponent => props => {
-    return props.error ? <p>Error - {props.error}</p> : <WrappedComponent {...props} />
+export const MyComopnent = compose(
+  withFetch(props => fetch(`http://myResource.com/${props.someResourceId}`))
+)(({data, loading, error}) => {
+  if (error) {
+    return <MyErrorComponent error={error} />
   }
+
+  if (loading) return <MySpinner />
+
+  return <div>{data}</div>
+})
+```
+
+### displayWhileLoading
+
+This HOC displays a spinner, it comes with a somewhat ugly default spinner but accepts a custom spinner. The HOC is designed to take up 100% space of the wrapper component.
+
+#### Basic Usage (Combined with withFetch)
+
+```js
+import {withFetch, displayWhileLoading} form 'with-fetch'
+import {compose} from 'recompose'
+import fetch from 'isomorphic-fetch'
+
+const enhance = compose(
+  withFetch(props => fetch(`http://myResource.com/${props.someResourceId}`)),
+
+  // Your spinner will be displayed until the data is returned
+
+  // ####################################################################
+  // If you dont pass any argument, the HOC will render a default spinner
+  // ####################################################################
+  displayWhileLoading(MyCustomSpinner)
 )
 
-/**
- * This now only render when the fetch
- * is complete!
- */
-const MyEnhancedComponent = enhance(({data}) => {
+const MyComponent = enhance(({data, loading, error}) => {
+
+  // If you dont want this inside your render, move this functionality into a HOC aswell!
+  if (error) return <MyErrorComponent error={error} />
   return (
     <div>
-      <p>{data}</p>
+      {data}
     </div>
-  )
-})
-```
-
-### wantIsLoading
-
-```js
-import {compose} from 'recompose'
-const enhance = compose(
-  withFetch({
-    wantIsLoading: true,
-    request: props => { ... },
-  })
-)
-
-const MyEnhancedComponent = enhance(({data, error, isLoading}) => {
-  return (
-    <div>
-      {isLoading
-          ? <MySpinner />
-          : <MyContainer>{/* ... */}</MyContainer>
-      }
-    </div>
-  )
-})
-```
-
-### error
-
-```js
-import {compose} from 'recompose'
-const enhance = compose(
-  withFetch({
-    request: props => { ... }
-  })
-)
-
-const MyEnhancedComponent = enhance(({data, error}) => {
-  return (
-    <div>{/* ... */}</div>
-  )
-})
-```
-### Custom Spinner
-
-```js
-import {compose} from 'recompose'
-const enhance = compose(
-  withFetch({
-    // This will make the component render your own spinner.
-    Spinner: <MySpinner />,
-    request: props => { ... }
-  })
-)
-
-const MyEnhancedComponent = enhance(({data, error}) => {
-  return (
-    <div>{/* ... */}</div>
   )
 })
 ```

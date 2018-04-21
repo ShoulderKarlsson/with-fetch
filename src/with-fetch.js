@@ -2,68 +2,72 @@ import * as React from 'react'
 import {compose, lifecycle, withState} from 'recompose'
 import './spinner.css'
 
-const DefaultSpinner = () => <div className="spinner" />
+const DefaultSpinner = () => <div className='spinner' />
 
-export const withFetch = ({
-  wantLoadingProp = false,
-  Spinner = DefaultSpinner,
-  request,
-}) => WrappedComponent => props => {
-  if (typeof request !== 'function') {
-    throw new Error('Property request must be a function')
-  } else if (request === undefined) {
-    throw new Error('Property request cannot be undefined')
+const parseResponse = response => {
+  if (!response.ok) return Promise.reject(response)
+  const contentType = response.headers.get('content-type')
+  if (contentType && contentType.indexOf('application/json') !== -1) {
+    return response.json()
+  } else {
+    return response.text()
+  }
+}
+
+export const withFetch = requestFn => WrappedComponent => props => {
+  if (typeof requestFn !== 'function') {
+    throw new Error('Argument must be function')
   }
 
   const enhance = compose(
-    withState('isLoading', 'setIsLoading', true),
+    withState('loading', 'setLoading', true),
     withState('data', 'setData', null),
     withState('error', 'setError', null),
     lifecycle({
       componentDidMount() {
-        const {setError, setIsLoading, setData} = this.props
-        request(props)
-          .then(response => {
-            setData(response)
-            setIsLoading(false)
+        const {setLoading, setData, setError} = this.props
+        requestFn(props)
+          .then(response => parseResponse(response))
+          .then(data => {
+            setData(data)
+            setLoading(false)
           })
-          .catch(e => {
-            setError(e)
-            setIsLoading(false)
+          .catch(error => {
+            setError(error)
+            setLoading(false)
           })
+          .catch(error => setError(error))
       },
     })
   )
 
-  const WithFetch = enhance(({isLoading, error, data}) => {
-    if (isLoading && wantLoadingProp) {
-      return (
-        <WrappedComponent
-          {...{
-            data,
-            isLoading,
-            error,
-            ...props,
-          }}
-        />
-      )
-    } else {
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          {isLoading ? (
-            <Spinner />
-          ) : (
-            <WrappedComponent {...{data, error, ...props}} />
-          )}
-        </div>
-      )
-    }
-  })
+  const EnhancedComponent = enhance(({loading, data, error}) => (
+    <WrappedComponent
+      {...{
+        loading,
+        data,
+        error,
+        ...props,
+      }}
+    />
+  ))
 
-  return <WithFetch />
+  return <EnhancedComponent />
+}
+
+export const displayWhileLoading = (
+  SpinnerComopnent = DefaultSpinner
+) => WrappedComponent => props => {
+  return props.loading ? (
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+      }}
+    >
+      <SpinnerComopnent />
+    </div>
+  ) : (
+    <WrappedComponent {...props} />
+  )
 }
